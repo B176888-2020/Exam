@@ -1,4 +1,5 @@
 #! /home/ninomoriaty/anaconda3/envs/PSBenv/bin/python
+# Remember to change to /usr/bin/python3
 
 ################################## Modules and packages ##################################
 # Packages and modules
@@ -20,9 +21,10 @@ from collections import OrderedDict
 ## Scientific Calculation
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas
+import pandas as pd
 import scipy
-import Bio
+import Bio.Blast.Applications as bioblast
+from Bio.Blast import NCBIXML
 
 ################################## Manual ##################################
 manual = "\nNAME\n" \
@@ -49,12 +51,63 @@ manual = "\nNAME\n" \
          "SEE ALSO\n" \
          "    Full program and documentation at <https://github.com/B176888-2020/Exam>."
 
+
+################################## Functions ##################################
+def how_to_blast(file, dir, type_iq, type_db, dir_iq, dir_db):
+    dir_xml = dir + file + ".xml"
+    dir_out = dir + file + ".out"
+    if (type_iq == "nucl") and (type_db == "nucl") :
+        res_blast5 = bioblast.NcbiblastnCommandline(query=dir_iq, db=dir_db, outfmt=5, out=dir_xml, evalue=0.001,)
+        res_blast7 = bioblast.NcbiblastnCommandline(query=dir_iq, db=dir_db, outfmt=7, out=dir_out, evalue=0.001,)
+    elif (type_iq == "prot") and (type_db == "nucl"):
+        res_blast5 = bioblast.NcbitblastnCommandline(query=dir_iq, db=dir_db, outfmt=5, out=dir_xml, evalue=0.001)
+        res_blast7 = bioblast.NcbitblastnCommandline(query=dir_iq, db=dir_db, outfmt=7, out=dir_out, evalue=0.001)
+    elif (type_iq == "nucl") and (type_db == "prot"):
+        res_blast5 = bioblast.NcbiblastxCommandline(query=dir_iq, db=dir_db, outfmt=5, out=dir_xml, evalue=0.001)
+        res_blast7 = bioblast.NcbiblastxCommandline(query=dir_iq, db=dir_db, outfmt=7, out=dir_out, evalue=0.001)
+    elif (type_iq == "prot") and (type_db == "prot"):
+        res_blast5 = bioblast.NcbiblastpCommandline(query=dir_iq, db=dir_db, outfmt=5, out=dir_xml, evalue=0.001)
+        res_blast7 = bioblast.NcbiblastpCommandline(query=dir_iq, db=dir_db, outfmt=7, out=dir_out, evalue=0.001)
+    print(res_blast5)
+    print(res_blast7)
+    res_blast5()
+    res_blast7()
+
+
+def parse_blast(file, dir):
+    E_VALUE_THRESH = 0.04
+    dir_xml = dir + file + ".xml"
+    res_xml = open(dir_xml, "r")
+    blast_records = NCBIXML.parse(res_xml)
+    dir_records = dir + file + ".txt"
+    res_txt = open(dir_records, "w")
+    for blast_record in blast_records:
+        res_txt.write("\n################################## Query ##################################")
+        res_txt.write("\nquery_sequence: " + str(blast_record.query))
+        for alignment in blast_record.alignments:
+            for hsp in alignment.hsps:
+                if hsp.expect < E_VALUE_THRESH:
+                    res_txt.write("\n**** Hits ****")
+                    res_txt.write("\nref_sequence: " + str(alignment.title))
+                    res_txt.write("\nref_length: " + str(alignment.length))
+                    res_txt.write("\ne value: " + str(hsp.expect))
+                    res_txt.write("\n" + hsp.query[0:75] + "...")
+                    res_txt.write("\n" + hsp.match[0:75] + "...")
+                    res_txt.write("\n" + hsp.sbjct[0:75] + "...")
+    res_txt.close()
+    res_xml.close()
+
 ################################## Main program ##################################
 # Add edirect to python environemnt PATH in server
 # os.environ["PATH"] += os.pathsep + "/localdisk/data/BPSM/Assignment2/"
 # os.environ["PATH"] += os.pathsep + "/localdisk/home/$USER/edirect/"
 
+# Some default values for the input arguments
+projectSpace = "./"
+
 # Get proper inputs from users
+print("\n################################## Inputs ##################################")
+dict_inputs = {}
 if len(sys.argv) == 1:
     reply = input("\nInteractive Mode(Default): \n" +
                   "Please input the file directory to the "
@@ -65,84 +118,81 @@ if len(sys.argv) == 1:
     elif reply == "-h" or reply == "--help":
         print(manual)
         exit()
+    # TODO: Enter the information interactively
 elif len(sys.argv) > 1:
     if sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(manual)
         exit()
+    elif sys.argv[1] == "-m":
+        arg_file = sys.argv[2]
+        if len(sys.argv) > 2:
+            projectSpace = sys.argv[3]
     else:
-        type_blast = sys.argv[1]
-    # TODO: When the dataabse is not provided in the path
-        dir_database = sys.argv[2]
-        dir_inquiry = sys.argv[3]
-    # TODO: if the database is existing
-        mk_db = sys.argv[4]
-    # TODO: The parameters about the blast
+        dict_inputs["type_blast"] = sys.argv[1]
+        # TODO: When the dataabse is not provided in the path
+        dict_inputs["dir_inquiry"] = sys.argv[2]
+        dict_inputs["dir_database"] = sys.argv[3]
+        # TODO: if the database is existing
+        dict_inputs["mk_db"] = sys.argv[4]
+        # TODO: The parameters about the blast
+        if len(sys.argv) > 4:
+            projectSpace = sys.argv[5]
 
+print("\n################################## Validate Inputs ##################################")
+if sys.argv[1] == "-m":
+    if len(sys.argv) > 3:
+        print("InputError: When using the file to submit multiple inputs, " +
+              "there should be only an argument provding the directory of the file containing the arguments list")
+    else:
+        args_content = pd.read_csv(arg_file, delim_whitespace=True)
+        print(args_content)
 
-
-print("\n################################## Data Collection and Selection ##################################")
 # Check if the shortcut of the data type is correct
-filename = re.split("/", dir_database)[-1]
+inq_name = re.split("/", dir_inquiry)[-1].split(".")[0]
+ref_name = re.split("/", dir_database)[-1].split(".")[0]
 list_types = re.split("-", type_blast)
-type_database = list_types[0]
-type_inquiry = list_types[1]
+type_inquiry = list_types[0]
+type_database = list_types[1]
 while True:
-    if (type_database != "prot") or (type_database != "nucl"):
+    if (type_database != "prot") and (type_database != "nucl"):
         print("\nWarning: The dbtype of your database is wrong. " +
               "You can correct it as follow or exit by press EXIT")
         type_database = input("\nPlease enter prot or nucl as the corrected dbtype or enter EXIT.")
-    if (type_inquiry != "prot") or (type_inquiry != "nucl"):
+    if (type_inquiry != "prot") and (type_inquiry != "nucl"):
         print("\nWarning: The type of your inquiry sequence is wrong. " +
               "You can correct it as follow or exit by press EXIT")
         type_inquiry = input("\nPlease enter prot or nucl as the corrected type of inquiry sequence or enter EXIT.")
-    if type_database == "EXIT" or type_inquiry == "EXIT":
+    if (type_database == "EXIT") and (type_inquiry == "EXIT"):
         exit()
     else:
         break
 
+dirPro = projectSpace + inq_name + "_" + ref_name + "/"
+os.makedirs(dirPro, exist_ok=True)
+print("\nInput information: \n" +
+      "Output Directory: " + str(dirPro)
+      )
+
+print("\n################################## Data Collection and Selection ##################################")
+# TODO:Get the database and sequence if needed
+
 
 # Get the primary protein sequence by `esearch` and `edirect`
 print("\n**** Collecting the data by esearch and efetch... ****")
-os.makedirs("./data", exist_ok=True)
-os.makedirs("./sum_data", exist_ok=True)
+dir_data = dirPro + "data/"
+dir_results = dirPro + "sum_data/"
+os.makedirs(dir_data, exist_ok=True)
+os.makedirs(dir_results, exist_ok=True)
 
 # Make BLAST database
 if mk_db:
     print("\n**** Making BLAST database... ****")
-    os.system("makeblastdb -in " + dir_database + " --dbtype " + type_database + " -out ./data/" + filename)
+    os.system("makeblastdb -in " + dir_database + " -dbtype " + type_database + " -out " + dir_data + ref_name)
+    dir_database = dir_data + ref_name
 else:
     print("\n**** Skip the makeblastdb process and use existing BLAST database... ****")
 
+print("\n################################## BLAST Analysis ##################################")
 # Do the BLAST analysis
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+how_to_blast(inq_name, dir_results, type_inquiry, type_database, dir_inquiry, dir_database)
+parse_blast(inq_name, dir_results)
