@@ -1,2 +1,0 @@
-nucl-prot ./testsequence.fasta ./nem.fasta True
-nucl-nucl ./inq.fa ./ref.fa True
