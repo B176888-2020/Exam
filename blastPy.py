@@ -5,8 +5,6 @@
 # Packages and modules
 ## OS and IO
 import os
-import shutil
-import subprocess
 import sys
 
 ## Regular Expression
@@ -15,14 +13,8 @@ import re
 ## String
 import string
 
-## Dictionary
-from collections import OrderedDict
-
 ## Scientific Calculation
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-import scipy
 import Bio.Blast.Applications as bioblast
 from Bio.Blast import NCBIXML
 
@@ -97,8 +89,45 @@ def parse_blast(file, dir):
     res_txt.close()
     res_xml.close()
 
+
 def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     print("\n################################## Validate Inputs ##################################")
+    # Check if there are any None objects
+    while True:
+        if (type_blast is None):
+            print("\nInput Error: parameter type_blast is None.")
+            type_blast = input("\nPlease enter proper value for type_blast or enter EXIT.")
+            if (type_blast == "EXIT"):
+                exit()
+            else:
+                continue
+        elif (dir_inquiry is None):
+            print("\nInput Error: dir_inquiry is None.")
+            if (dir_inquiry == "EXIT"):
+                exit()
+            else:
+                continue
+        elif (dir_database is None):
+            print("\nInput Error: dir_database is None.")
+            if (dir_database == "EXIT"):
+                exit()
+            else:
+                continue
+        elif (mk_db is None):
+            print("\nInput Error: parameter mk_db is None.")
+            if (mk_db == "EXIT"):
+                exit()
+            else:
+                continue
+        elif (projectSpace is None):
+            print("\nInput Error: projectSpace is None")
+            if (projectSpace == "EXIT"):
+                exit()
+            else:
+                continue
+        else:
+            break
+
     # Check if the shortcut of the data type is correct
     inq_name = re.split("/", dir_inquiry)[-1].split(".")[0]
     ref_name = re.split("/", dir_database)[-1].split(".")[0]
@@ -110,26 +139,26 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
             print("\nWarning: The dbtype of your database is wrong. " +
                   "You can correct it as follow or exit by press EXIT")
             type_database = input("\nPlease enter prot or nucl as the corrected dbtype or enter EXIT.")
-        if (type_inquiry != "prot") and (type_inquiry != "nucl"):
+            if (type_database == "EXIT"):
+                exit()
+            else:
+                continue
+        elif (type_inquiry != "prot") and (type_inquiry != "nucl"):
             print("\nWarning: The type of your inquiry sequence is wrong. " +
                   "You can correct it as follow or exit by press EXIT")
             type_inquiry = input("\nPlease enter prot or nucl as the corrected type of inquiry sequence or enter EXIT.")
-        if (type_database == "EXIT") and (type_inquiry == "EXIT"):
-            exit()
+            if (type_inquiry == "EXIT"):
+                exit()
+            else:
+                continue
         else:
             break
 
     dirPro = projectSpace + inq_name + "_" + ref_name + "/"
     os.makedirs(dirPro, exist_ok=True)
-    print("\nInput information: \n" +
-          "Output Directory: " + str(dirPro)
-          )
 
     print("\n################################## Data Collection and Selection ##################################")
-    # TODO:Get the database and sequence if needed
-
-
-    # Get the primary protein sequence by `esearch` and `edirect`
+    # Get the directory of the data and create the folders to store the intermediate files as well as results.
     print("\n**** Collecting the data by esearch and efetch... ****")
     dir_data = dirPro + "data/"
     dir_results = dirPro + "sum_data/"
@@ -143,11 +172,19 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
         dir_database = dir_data + ref_name
     else:
         print("\n**** Skip the makeblastdb process and use existing BLAST database... ****")
+        dir_database = dir_database
 
     print("\n################################## BLAST Analysis ##################################")
     # Do the BLAST analysis
     how_to_blast(inq_name, dir_results, type_inquiry, type_database, dir_inquiry, dir_database)
     parse_blast(inq_name, dir_results)
+    output_xml = dir_results + inq_name + ".xml"
+    output_out = dir_results + inq_name + ".out"
+    print("\nDone. The output files:" + output_xml + " and " + output_out +
+          " will be stored in the sum_data directory in " + str(dirPro))
+
+    print("\nFinish: " + type_blast + " BLAST analysis with query: " + dir_inquiry + " and database:" + dir_database)
+    print("\nThe outputs will be stored in the sum_data directory in " + str(dirPro))
 
 
 ################################## Main program ##################################
@@ -182,10 +219,8 @@ elif len(sys.argv) > 1:
             projectSpace = sys.argv[3]
     else:
         dict_inputs["type_blast"] = [sys.argv[1]]
-        # TODO: When the dataabse is not provided in the path
         dict_inputs["dir_inquiry"] = [sys.argv[2]]
         dict_inputs["dir_database"] = [sys.argv[3]]
-        # TODO: if the database is existing
         dict_inputs["mk_db"] = [sys.argv[4]]
         # TODO: The parameters about the blast
         if len(sys.argv) > 5:
