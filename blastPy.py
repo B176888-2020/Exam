@@ -95,36 +95,51 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     # Check if there are any None objects
     while True:
         if (type_blast is None):
-            print("\nInput Error: parameter type_blast is None.")
+            print("\nInputError: parameter type_blast is None.")
             type_blast = input("\nPlease enter proper value for type_blast or enter EXIT.")
             if (type_blast == "EXIT"):
                 exit()
             else:
                 continue
         elif (dir_inquiry is None):
-            print("\nInput Error: dir_inquiry is None.")
+            print("\nInputError: dir_inquiry is None.")
+            dir_inquiry = input("\nPlease enter proper value(dir of query file)  for dir_inquiry or enter EXIT.")
             if (dir_inquiry == "EXIT"):
                 exit()
             else:
+                if not os.path.exists(dir_inquiry):
+
                 continue
         elif (dir_database is None):
-            print("\nInput Error: dir_database is None.")
+            print("\nInputError: dir_database is None.")
+            dir_database = input("\nPlease enter proper value(dir of database file) for dir_database or enter EXIT.")
             if (dir_database == "EXIT"):
                 exit()
             else:
                 continue
         elif (mk_db is None):
-            print("\nInput Error: parameter mk_db is None.")
+            print("\nInputError: parameter mk_db is None.")
+            mk_db = input("\nPlease enter proper value(True or False) for mk_db or enter EXIT.")
             if (mk_db == "EXIT"):
                 exit()
             else:
                 continue
         elif (projectSpace is None):
-            print("\nInput Error: projectSpace is None")
+            print("\nInputError: projectSpace is None")
+            projectSpace = input("\nPlease enter proper value(dir of your project) for projectSpace or enter EXIT.")
             if (projectSpace == "EXIT"):
                 exit()
             else:
                 continue
+        else:
+            break
+
+    # Check if the file/directories are existing
+    while True:
+        if not os.path.exists(dir_inquiry):
+            print("InputError: The directory of the query sequence is not found.")
+        elif not os.path.exists(dir_database):
+            print("InputError: The directory of the database is not found.")
         else:
             break
 
