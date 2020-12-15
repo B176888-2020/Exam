@@ -1,5 +1,4 @@
-#! /home/ninomoriaty/anaconda3/envs/PSBenv/bin/python
-# Remember to change to /usr/bin/python3
+#! /usr/bin/python3
 
 ################################## Modules and packages ##################################
 # Packages and modules
@@ -265,10 +264,6 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
 
 
 ################################## Main program ##################################
-# Add edirect to python environemnt PATH in server
-# os.environ["PATH"] += os.pathsep + "/localdisk/data/BPSM/Assignment2/"
-# os.environ["PATH"] += os.pathsep + "/localdisk/home/$USER/edirect/"
-
 # Some default values for the input arguments
 projectSpace = "./"
 
