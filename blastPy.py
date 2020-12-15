@@ -19,6 +19,7 @@ import Bio.Blast.Applications as bioblast
 from Bio.Blast import NCBIXML
 
 ################################## Manual ##################################
+# Brief manual
 manual = "\nNAME\n" \
          "    blastPy: conduct the blast analysis in different combination of query and databases,.\n" \
          "SYNOPSIS\n" \
@@ -44,6 +45,7 @@ manual = "\nNAME\n" \
 
 
 ################################## Functions ##################################
+# Conduct BLAST analysis according to the type_blast
 def how_to_blast(file, dir, type_iq, type_db, dir_iq, dir_db):
     dir_xml = dir + file + ".xml"
     dir_out = dir + file + ".out"
@@ -65,6 +67,7 @@ def how_to_blast(file, dir, type_iq, type_db, dir_iq, dir_db):
     res_blast7()
 
 
+# Parse the xml results from function how_to_blast
 def parse_blast(file, dir):
     E_VALUE_THRESH = 0.04
     dir_xml = dir + file + ".xml"
@@ -89,6 +92,7 @@ def parse_blast(file, dir):
     res_xml.close()
 
 
+# The main function for a pair of query sequence and database
 def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     print("\n################################## Validate Inputs ##################################")
     # Check if there are any None objects
@@ -171,7 +175,7 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
 
     # Check if the mk_db is boolean type
     while True:
-        if (mk_db != "True") and (mk_db != "False"):
+        if ((mk_db != "True") and (mk_db != "False")):
             print("\nInputError: The mk_db should be a boolean string.")
             mk_db = input("\nPlease reassign True or False to parameter mk_db.\n")
             continue
@@ -209,6 +213,7 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
         else:
             break
 
+    # Settle the directory for the results
     dirPro = projectSpace + inq_name + "_" + ref_name + "/"
     os.makedirs(dirPro, exist_ok=True)
 
@@ -285,7 +290,9 @@ elif len(sys.argv) > 1:
         print(manual)
         exit()
     elif sys.argv[1] == "-m":
+        # Multiple Mode
         print("\n################################## Inputs ##################################")
+        # Check if the arguments is sufficient
         if len(sys.argv) < 3:
             print(
                 "InputError: Input defects. Please check if there are any arguments are not provided as the --help manual")
@@ -293,8 +300,21 @@ elif len(sys.argv) > 1:
         arg_file = sys.argv[2]
         if len(sys.argv) > 3:
             projectSpace = sys.argv[3]
+            # Check if the arguments is too much
+        if len(sys.argv) > 4:
+            print("InputError: When using the file to submit multiple inputs, " +
+                  "there should be only an argument providing the directory of the file containing the arguments list")
+            exit()
+        # Convert the file content into a data.frame and convert to normal dictionary
+        names = ["type_blast", "dir_inquiry", "dir_database", "mk_db"]
+        args_content = pd.read_csv(arg_file, names=names,
+                                   delim_whitespace=True)
+        for name in names:
+            dict_inputs[name] = args_content[name]
     else:
+        # Normal Mode
         print("\n################################## Inputs ##################################")
+        # Check if the arguments is sufficient
         if len(sys.argv) < 5:
             print(
                 "InputError: Input defects. Please check if there are any arguments are not provided as the --help manual")
@@ -306,20 +326,14 @@ elif len(sys.argv) > 1:
         # TODO: The parameters about the blast
         if len(sys.argv) > 5:
             projectSpace = sys.argv[5]
-
-if sys.argv[1] == "-m":
-    if len(sys.argv) > 3:
-        print("InputError: When using the file to submit multiple inputs, " +
-              "there should be only an argument provding the directory of the file containing the arguments list")
-    else:
-        names = ["type_blast", "dir_inquiry", "dir_database", "mk_db"]
-        args_content = pd.read_csv(arg_file, names=names,
-                                   delim_whitespace=True)
-        for name in names:
-            dict_inputs[name] = args_content[name]
+        # Check if the arguments is too much
+        if len(sys.argv) > 6:
+            print("InputError: When using the file to submit multiple inputs, " +
+                  "there should be only an argument providing the directory of the file containing the arguments list")
+            exit()
 
 counter = 0
 for counter in list(range(len(dict_inputs["type_blast"]))):
     main(dict_inputs["type_blast"][counter], dict_inputs["dir_inquiry"][counter],
-         dict_inputs["dir_database"][counter], dict_inputs["mk_db"][counter],
+         dict_inputs["dir_database"][counter], str(dict_inputs["mk_db"][counter]),
          projectSpace)
