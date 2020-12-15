@@ -97,6 +97,59 @@ def parse_blast(file, dir):
     res_txt.close()
     res_xml.close()
 
+def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
+    print("\n################################## Validate Inputs ##################################")
+    # Check if the shortcut of the data type is correct
+    inq_name = re.split("/", dir_inquiry)[-1].split(".")[0]
+    ref_name = re.split("/", dir_database)[-1].split(".")[0]
+    list_types = re.split("-", type_blast)
+    type_inquiry = list_types[0]
+    type_database = list_types[1]
+    while True:
+        if (type_database != "prot") and (type_database != "nucl"):
+            print("\nWarning: The dbtype of your database is wrong. " +
+                  "You can correct it as follow or exit by press EXIT")
+            type_database = input("\nPlease enter prot or nucl as the corrected dbtype or enter EXIT.")
+        if (type_inquiry != "prot") and (type_inquiry != "nucl"):
+            print("\nWarning: The type of your inquiry sequence is wrong. " +
+                  "You can correct it as follow or exit by press EXIT")
+            type_inquiry = input("\nPlease enter prot or nucl as the corrected type of inquiry sequence or enter EXIT.")
+        if (type_database == "EXIT") and (type_inquiry == "EXIT"):
+            exit()
+        else:
+            break
+
+    dirPro = projectSpace + inq_name + "_" + ref_name + "/"
+    os.makedirs(dirPro, exist_ok=True)
+    print("\nInput information: \n" +
+          "Output Directory: " + str(dirPro)
+          )
+
+    print("\n################################## Data Collection and Selection ##################################")
+    # TODO:Get the database and sequence if needed
+
+
+    # Get the primary protein sequence by `esearch` and `edirect`
+    print("\n**** Collecting the data by esearch and efetch... ****")
+    dir_data = dirPro + "data/"
+    dir_results = dirPro + "sum_data/"
+    os.makedirs(dir_data, exist_ok=True)
+    os.makedirs(dir_results, exist_ok=True)
+
+    # Make BLAST database
+    if mk_db:
+        print("\n**** Making BLAST database... ****")
+        os.system("makeblastdb -in " + dir_database + " -dbtype " + type_database + " -out " + dir_data + ref_name)
+        dir_database = dir_data + ref_name
+    else:
+        print("\n**** Skip the makeblastdb process and use existing BLAST database... ****")
+
+    print("\n################################## BLAST Analysis ##################################")
+    # Do the BLAST analysis
+    how_to_blast(inq_name, dir_results, type_inquiry, type_database, dir_inquiry, dir_database)
+    parse_blast(inq_name, dir_results)
+
+
 ################################## Main program ##################################
 # Add edirect to python environemnt PATH in server
 # os.environ["PATH"] += os.pathsep + "/localdisk/data/BPSM/Assignment2/"
@@ -125,74 +178,32 @@ elif len(sys.argv) > 1:
         exit()
     elif sys.argv[1] == "-m":
         arg_file = sys.argv[2]
-        if len(sys.argv) > 2:
+        if len(sys.argv) > 3:
             projectSpace = sys.argv[3]
     else:
-        dict_inputs["type_blast"] = sys.argv[1]
+        dict_inputs["type_blast"] = [sys.argv[1]]
         # TODO: When the dataabse is not provided in the path
-        dict_inputs["dir_inquiry"] = sys.argv[2]
-        dict_inputs["dir_database"] = sys.argv[3]
+        dict_inputs["dir_inquiry"] = [sys.argv[2]]
+        dict_inputs["dir_database"] = [sys.argv[3]]
         # TODO: if the database is existing
-        dict_inputs["mk_db"] = sys.argv[4]
+        dict_inputs["mk_db"] = [sys.argv[4]]
         # TODO: The parameters about the blast
-        if len(sys.argv) > 4:
+        if len(sys.argv) > 5:
             projectSpace = sys.argv[5]
 
-print("\n################################## Validate Inputs ##################################")
 if sys.argv[1] == "-m":
     if len(sys.argv) > 3:
         print("InputError: When using the file to submit multiple inputs, " +
               "there should be only an argument provding the directory of the file containing the arguments list")
     else:
-        args_content = pd.read_csv(arg_file, delim_whitespace=True)
-        print(args_content)
+        names = ["type_blast", "dir_inquiry", "dir_database", "mk_db"]
+        args_content = pd.read_csv(arg_file, names=names,
+                                   delim_whitespace=True)
+        for name in names:
+            dict_inputs[name] = args_content[name]
 
-# Check if the shortcut of the data type is correct
-inq_name = re.split("/", dir_inquiry)[-1].split(".")[0]
-ref_name = re.split("/", dir_database)[-1].split(".")[0]
-list_types = re.split("-", type_blast)
-type_inquiry = list_types[0]
-type_database = list_types[1]
-while True:
-    if (type_database != "prot") and (type_database != "nucl"):
-        print("\nWarning: The dbtype of your database is wrong. " +
-              "You can correct it as follow or exit by press EXIT")
-        type_database = input("\nPlease enter prot or nucl as the corrected dbtype or enter EXIT.")
-    if (type_inquiry != "prot") and (type_inquiry != "nucl"):
-        print("\nWarning: The type of your inquiry sequence is wrong. " +
-              "You can correct it as follow or exit by press EXIT")
-        type_inquiry = input("\nPlease enter prot or nucl as the corrected type of inquiry sequence or enter EXIT.")
-    if (type_database == "EXIT") and (type_inquiry == "EXIT"):
-        exit()
-    else:
-        break
-
-dirPro = projectSpace + inq_name + "_" + ref_name + "/"
-os.makedirs(dirPro, exist_ok=True)
-print("\nInput information: \n" +
-      "Output Directory: " + str(dirPro)
-      )
-
-print("\n################################## Data Collection and Selection ##################################")
-# TODO:Get the database and sequence if needed
-
-
-# Get the primary protein sequence by `esearch` and `edirect`
-print("\n**** Collecting the data by esearch and efetch... ****")
-dir_data = dirPro + "data/"
-dir_results = dirPro + "sum_data/"
-os.makedirs(dir_data, exist_ok=True)
-os.makedirs(dir_results, exist_ok=True)
-
-# Make BLAST database
-if mk_db:
-    print("\n**** Making BLAST database... ****")
-    os.system("makeblastdb -in " + dir_database + " -dbtype " + type_database + " -out " + dir_data + ref_name)
-    dir_database = dir_data + ref_name
-else:
-    print("\n**** Skip the makeblastdb process and use existing BLAST database... ****")
-
-print("\n################################## BLAST Analysis ##################################")
-# Do the BLAST analysis
-how_to_blast(inq_name, dir_results, type_inquiry, type_database, dir_inquiry, dir_database)
-parse_blast(inq_name, dir_results)
+counter = 0
+for counter in list(range(len(dict_inputs["type_blast"]))):
+    main(dict_inputs["type_blast"][counter], dict_inputs["dir_inquiry"][counter],
+         dict_inputs["dir_database"][counter], dict_inputs["mk_db"][counter],
+         projectSpace)
