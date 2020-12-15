@@ -95,35 +95,35 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     while True:
         if type_blast is None:
             print("\nInputError: parameter type_blast is None.")
-            type_blast = input("\nPlease enter proper value for type_blast or enter EXIT.")
+            type_blast = input("\nPlease enter proper value for type_blast or enter EXIT.\n")
             if type_blast.upper() == "EXIT":
                 exit()
             else:
                 continue
         elif dir_inquiry is None:
             print("\nInputError: dir_inquiry is None.")
-            dir_inquiry = input("\nPlease enter proper value(dir of query file)  for dir_inquiry or enter EXIT.")
+            dir_inquiry = input("\nPlease enter proper value(dir of query file)  for dir_inquiry or enter EXIT.\n")
             if dir_inquiry.upper() == "EXIT":
                 exit()
             else:
                 continue
         elif dir_database is None:
             print("\nInputError: dir_database is None.")
-            dir_database = input("\nPlease enter proper value(dir of database file) for dir_database or enter EXIT.")
+            dir_database = input("\nPlease enter proper value(dir of database file) for dir_database or enter EXIT.\n")
             if dir_database == "EXIT":
                 exit()
             else:
                 continue
         elif mk_db is None:
             print("\nInputError: parameter mk_db is None.")
-            mk_db = input("\nPlease enter proper value(True or False) for mk_db or enter EXIT.")
+            mk_db = input("\nPlease enter proper value(True or False) for mk_db or enter EXIT.\n")
             if mk_db.upper() == "EXIT":
                 exit()
             else:
                 continue
         elif projectSpace is None:
             print("\nInputError: projectSpace is None")
-            projectSpace = input("\nPlease enter proper value(dir of your project) for projectSpace or enter EXIT.")
+            projectSpace = input("\nPlease enter proper value(dir of your project) for projectSpace or enter EXIT.\n")
             if projectSpace.upper() == "EXxIT":
                 exit()
             else:
@@ -135,21 +135,21 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     while True:
         if not os.path.exists(dir_inquiry):
             print("\nInputError: The directory of the query sequence is not found.")
-            dir_inquiry = input("\nPlease enter a qualified directory for parameter dir_inquiry or enter EXIT")
+            dir_inquiry = input("\nPlease enter a qualified directory for parameter dir_inquiry or enter EXIT.\n")
             if dir_inquiry.upper() == "EXIT":
                 exit()
             else:
                 continue
-        elif not os.path.exists(dir_database):
+        elif (not os.path.exists(dir_database)) and (not os.path.exists("/".join(dir_database.split("/")[:-1]))):
             print("\nInputError: The directory of the database is not found.")
-            dir_database = input("\nPlease enter a qualified directory for parameter dir_database) or enter EXIT")
+            dir_database = input("\nPlease enter a qualified directory for parameter dir_database or enter EXIT.\n")
             if dir_database.upper() == "EXIT":
                 exit()
             else:
                 continue
         elif not os.path.exists(projectSpace):
             print("\nInputError: The directory of the database is not found.")
-            projectSpace = input("\nPlease enter a qualified directory for parameter dir_database) or enter EXIT")
+            projectSpace = input("\nPlease enter a qualified directory for parameter projectSpace or enter EXIT.\n")
             if projectSpace.upper() == "EXIT":
                 exit()
             else:
@@ -161,9 +161,26 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     if os.stat(dir_inquiry).st_size == 0:
         print("\nInputError: The query sequence file is empty. Please check if the query sequence file is correct.")
         exit()
-    elif os.stat(dir_database).st_size == 0:
-        print("\nInputError: The database file is empty. Please check if the database file is correct.")
+    elif os.path.isfile(dir_database):
+        if os.stat(dir_database).st_size == 0:
+            print("\nInputError: The database file is empty. Please check if the database file is correct.")
+            exit()
+    elif len(os.listdir("/".join(dir_database.split("/")[:-1]))) == 0:
+        print("\nInputError: The database directory is empty. Please check if the database file is correct.")
         exit()
+
+    # Check if the mk_db is boolean type
+    while True:
+        if (mk_db != "True") and (mk_db != "False"):
+            print("\nInputError: The mk_db should be a boolean string.")
+            mk_db = input("\nPlease reassign True or False to parameter mk_db.\n")
+            continue
+        else:
+            if mk_db == "True":
+                mk_db = True
+            elif mk_db == "False":
+                mk_db = False
+            break
 
     # Check if the shortcut of the data type is correct
     inq_name = re.split("/", dir_inquiry)[-1].split(".")[0]
@@ -175,7 +192,7 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
         if (type_database != "prot") and (type_database != "nucl"):
             print("\nWarning: The dbtype of your database is wrong. " +
                   "You can correct it as follow or exit by press EXIT")
-            type_database = input("\nPlease enter prot or nucl as the corrected dbtype or enter EXIT.")
+            type_database = input("\nPlease enter prot or nucl as the corrected dbtype or enter EXIT.\n")
             if type_database.upper() == "EXIT":
                 exit()
             else:
@@ -183,7 +200,8 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
         elif (type_inquiry != "prot") and (type_inquiry != "nucl"):
             print("\nWarning: The type of your inquiry sequence is wrong. " +
                   "You can correct it as follow or exit by press EXIT")
-            type_inquiry = input("\nPlease enter prot or nucl as the corrected type of inquiry sequence or enter EXIT.")
+            type_inquiry = input(
+                "\nPlease enter prot or nucl as the corrected type of inquiry sequence or enter EXIT.\n")
             if type_inquiry.upper() == "EXIT":
                 exit()
             else:
@@ -202,13 +220,13 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     if (SeqCount > 1000):
         print("\nWarning: The number of query sequences is larger than 1000")
         while True:
-            dec = input("\nDo you want to continue the BLAST analysis? Please enter YES or NO to make a decision.")
+            dec = input("\nDo you want to continue the BLAST analysis? Please enter YES or NO to make a decision.\n")
             if dec.upper() == "NO":
                 exit()
             elif dec.upper() == "YES":
                 break
             else:
-                print("ResponseError: Sorry, please use YES or NO to make the decision.")
+                print("ResponseError: Sorry, please use YES or NO to make the decision.\n")
                 continue
 
     print("\n################################## Data Collection and Selection ##################################")
@@ -252,32 +270,34 @@ projectSpace = "./"
 # Get proper inputs from users
 dict_inputs = {}
 if len(sys.argv) == 1:
-    reply = input("\nInteractive Mode(Default): \n" +
-                  "Please input the file directory to the "
+    reply = input("\nInputDefection: \n" +
+                  "Please provide proper inputs of the query and database files and arguments based on the user manual or --help\n"
+                  "Then you can conduct BLAST analysis of one(normal mode) or more(multiple mode activated by option -m) pairs of different query sequences and databases\n"
                   "More detailed information about proTree usage can be checked by enter -h or --help. \n" +
                   "If you want to exit, please enter EXIT or press the Ctrl+C to exit the programme. \n")
-    if reply == "EXIT":
+    if reply == "EXIT" or reply is None:
         exit()
     elif reply == "-h" or reply == "--help":
         print(manual)
-        exit()
-    # TODO: Enter the information interactively
+    exit()
 elif len(sys.argv) > 1:
     if sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(manual)
         exit()
     elif sys.argv[1] == "-m":
         print("\n################################## Inputs ##################################")
-        if len(sys.argv) < 2:
-            print("InputError: Input defects. Please check if there are any arguments is not provided according to the --help manual")
+        if len(sys.argv) < 3:
+            print(
+                "InputError: Input defects. Please check if there are any arguments are not provided as the --help manual")
             exit()
         arg_file = sys.argv[2]
         if len(sys.argv) > 3:
             projectSpace = sys.argv[3]
     else:
         print("\n################################## Inputs ##################################")
-        if len(sys.argv) < 4:
-            print("InputError: Input defects. Please check if there are any arguments is not provided according to the --help manual")
+        if len(sys.argv) < 5:
+            print(
+                "InputError: Input defects. Please check if there are any arguments are not provided as the --help manual")
             exit()
         dict_inputs["type_blast"] = [sys.argv[1]]
         dict_inputs["dir_inquiry"] = [sys.argv[2]]
