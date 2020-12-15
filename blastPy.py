@@ -20,26 +20,25 @@ from Bio.Blast import NCBIXML
 
 ################################## Manual ##################################
 manual = "\nNAME\n" \
-         "    proTree: analyse the conservation level of protein family within taxonomy group\n" \
+         "    blastPy: conduct the blast analysis in different combination of query and databases,.\n" \
          "SYNOPSIS\n" \
-         "    proTree [-options] [protein_families] [taxonomy_groups] [project_directory] [selection_modes] [selection]\n" \
+         "    blastPy -m [The file containing multiple combinations of query and database directories and arguments] [project directory]\n" \
+         "    blastPy [type of blast] [directory of query file] [directory of database file] [makeblastdb or not] [project directory]\n" \
          "DESCRIPTION\n" \
-         "    proTree can analyse and visualise the conservation level of the protein family within taxonomy group.\n" \
-         "    Functions in EMBOSS are also provdied to broaden the scale of motifs search and other usages.\n" \
+         "    blastPy can call blastn, blastp, blastx, tblastn to conduct different types of BLAST analysis.\n" \
+         "    The parsed results of blastPy can also be found and checked in corresponding directories.\n" \
          "\n" \
          "    Options:\n" \
          "\n" \
          "    -h, --help\n" \
-         "        display this help and exit\n" \
-         "    -v\n" \
-         "        use interactive mode to conduct the analysis process. Users can provide inputs acccording to the requirements.\n" \
-         "    -s\n" \
-         "        use silent mode to conduct the analysis process if users can provide correct inputs.\n" \
+         "        display this help manual and exit.\n" \
+         "    -m [The file containing multiple combinations of query and database directories and arguments]\n" \
+         "        use multiple mode to conduct the BLAST analysis process for multiple queries and databases.\n" \
          "\n" \
          "AUTHOR\n" \
          "    B176888-2020\n" \
          "REPORTINGS BUGS\n" \
-         "    Please feel free to Report bugs to <https://github.com/B176888-2020/Exam/issues>\n" \
+         "    Please feel free to report bugs to <https://github.com/B176888-2020/Exam/issues>\n" \
          "SEE ALSO\n" \
          "    Full program and documentation at <https://github.com/B176888-2020/Exam>."
 
@@ -48,9 +47,9 @@ manual = "\nNAME\n" \
 def how_to_blast(file, dir, type_iq, type_db, dir_iq, dir_db):
     dir_xml = dir + file + ".xml"
     dir_out = dir + file + ".out"
-    if (type_iq == "nucl") and (type_db == "nucl") :
-        res_blast5 = bioblast.NcbiblastnCommandline(query=dir_iq, db=dir_db, outfmt=5, out=dir_xml, evalue=0.001,)
-        res_blast7 = bioblast.NcbiblastnCommandline(query=dir_iq, db=dir_db, outfmt=7, out=dir_out, evalue=0.001,)
+    if (type_iq == "nucl") and (type_db == "nucl"):
+        res_blast5 = bioblast.NcbiblastnCommandline(query=dir_iq, db=dir_db, outfmt=5, out=dir_xml, evalue=0.001, )
+        res_blast7 = bioblast.NcbiblastnCommandline(query=dir_iq, db=dir_db, outfmt=7, out=dir_out, evalue=0.001, )
     elif (type_iq == "prot") and (type_db == "nucl"):
         res_blast5 = bioblast.NcbitblastnCommandline(query=dir_iq, db=dir_db, outfmt=5, out=dir_xml, evalue=0.001)
         res_blast7 = bioblast.NcbitblastnCommandline(query=dir_iq, db=dir_db, outfmt=7, out=dir_out, evalue=0.001)
@@ -94,40 +93,38 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     print("\n################################## Validate Inputs ##################################")
     # Check if there are any None objects
     while True:
-        if (type_blast is None):
+        if type_blast is None:
             print("\nInputError: parameter type_blast is None.")
             type_blast = input("\nPlease enter proper value for type_blast or enter EXIT.")
-            if (type_blast == "EXIT"):
+            if type_blast.upper() == "EXIT":
                 exit()
             else:
                 continue
-        elif (dir_inquiry is None):
+        elif dir_inquiry is None:
             print("\nInputError: dir_inquiry is None.")
             dir_inquiry = input("\nPlease enter proper value(dir of query file)  for dir_inquiry or enter EXIT.")
-            if (dir_inquiry == "EXIT"):
+            if dir_inquiry.upper() == "EXIT":
                 exit()
             else:
-                if not os.path.exists(dir_inquiry):
-
                 continue
-        elif (dir_database is None):
+        elif dir_database is None:
             print("\nInputError: dir_database is None.")
             dir_database = input("\nPlease enter proper value(dir of database file) for dir_database or enter EXIT.")
-            if (dir_database == "EXIT"):
+            if dir_database == "EXIT":
                 exit()
             else:
                 continue
-        elif (mk_db is None):
+        elif mk_db is None:
             print("\nInputError: parameter mk_db is None.")
             mk_db = input("\nPlease enter proper value(True or False) for mk_db or enter EXIT.")
-            if (mk_db == "EXIT"):
+            if mk_db.upper() == "EXIT":
                 exit()
             else:
                 continue
-        elif (projectSpace is None):
+        elif projectSpace is None:
             print("\nInputError: projectSpace is None")
             projectSpace = input("\nPlease enter proper value(dir of your project) for projectSpace or enter EXIT.")
-            if (projectSpace == "EXIT"):
+            if projectSpace.upper() == "EXxIT":
                 exit()
             else:
                 continue
@@ -137,11 +134,36 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     # Check if the file/directories are existing
     while True:
         if not os.path.exists(dir_inquiry):
-            print("InputError: The directory of the query sequence is not found.")
+            print("\nInputError: The directory of the query sequence is not found.")
+            dir_inquiry = input("\nPlease enter a qualified directory for parameter dir_inquiry or enter EXIT")
+            if dir_inquiry.upper() == "EXIT":
+                exit()
+            else:
+                continue
         elif not os.path.exists(dir_database):
-            print("InputError: The directory of the database is not found.")
+            print("\nInputError: The directory of the database is not found.")
+            dir_database = input("\nPlease enter a qualified directory for parameter dir_database) or enter EXIT")
+            if dir_database.upper() == "EXIT":
+                exit()
+            else:
+                continue
+        elif not os.path.exists(projectSpace):
+            print("\nInputError: The directory of the database is not found.")
+            projectSpace = input("\nPlease enter a qualified directory for parameter dir_database) or enter EXIT")
+            if projectSpace.upper() == "EXIT":
+                exit()
+            else:
+                continue
         else:
             break
+
+    # Check if the file contents are empty
+    if os.stat(dir_inquiry).st_size == 0:
+        print("\nInputError: The query sequence file is empty. Please check if the query sequence file is correct.")
+        exit()
+    elif os.stat(dir_database).st_size == 0:
+        print("\nInputError: The database file is empty. Please check if the database file is correct.")
+        exit()
 
     # Check if the shortcut of the data type is correct
     inq_name = re.split("/", dir_inquiry)[-1].split(".")[0]
@@ -154,7 +176,7 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
             print("\nWarning: The dbtype of your database is wrong. " +
                   "You can correct it as follow or exit by press EXIT")
             type_database = input("\nPlease enter prot or nucl as the corrected dbtype or enter EXIT.")
-            if (type_database == "EXIT"):
+            if type_database.upper() == "EXIT":
                 exit()
             else:
                 continue
@@ -162,7 +184,7 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
             print("\nWarning: The type of your inquiry sequence is wrong. " +
                   "You can correct it as follow or exit by press EXIT")
             type_inquiry = input("\nPlease enter prot or nucl as the corrected type of inquiry sequence or enter EXIT.")
-            if (type_inquiry == "EXIT"):
+            if type_inquiry.upper() == "EXIT":
                 exit()
             else:
                 continue
@@ -171,6 +193,23 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
 
     dirPro = projectSpace + inq_name + "_" + ref_name + "/"
     os.makedirs(dirPro, exist_ok=True)
+
+    # Check if the data is too much for further analysis
+    Seq = open(dir_inquiry, "r")
+    SeqContent = Seq.read()
+    Seq.close()
+    SeqCount = SeqContent.count(">")
+    if (SeqCount > 1000):
+        print("\nWarning: The number of query sequences is larger than 1000")
+        while True:
+            dec = input("\nDo you want to continue the BLAST analysis? Please enter YES or NO to make a decision.")
+            if dec.upper() == "NO":
+                exit()
+            elif dec.upper() == "YES":
+                break
+            else:
+                print("ResponseError: Sorry, please use YES or NO to make the decision.")
+                continue
 
     print("\n################################## Data Collection and Selection ##################################")
     # Get the directory of the data and create the folders to store the intermediate files as well as results.
@@ -196,10 +235,10 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
     output_xml = dir_results + inq_name + ".xml"
     output_out = dir_results + inq_name + ".out"
     print("\nDone. The output files:" + output_xml + " and " + output_out +
-          " will be stored in the sum_data directory in " + str(dirPro))
+          " will be stored in " + str(dirPro) + "sum_data")
 
     print("\nFinish: " + type_blast + " BLAST analysis with query: " + dir_inquiry + " and database:" + dir_database)
-    print("\nThe outputs will be stored in the sum_data directory in " + str(dirPro))
+    print("\nThe outputs will be stored in " + str(dirPro) + "sum_data")
 
 
 ################################## Main program ##################################
@@ -211,7 +250,6 @@ def main(type_blast, dir_inquiry, dir_database, mk_db, projectSpace):
 projectSpace = "./"
 
 # Get proper inputs from users
-print("\n################################## Inputs ##################################")
 dict_inputs = {}
 if len(sys.argv) == 1:
     reply = input("\nInteractive Mode(Default): \n" +
@@ -229,10 +267,18 @@ elif len(sys.argv) > 1:
         print(manual)
         exit()
     elif sys.argv[1] == "-m":
+        print("\n################################## Inputs ##################################")
+        if len(sys.argv) < 2:
+            print("InputError: Input defects. Please check if there are any arguments is not provided according to the --help manual")
+            exit()
         arg_file = sys.argv[2]
         if len(sys.argv) > 3:
             projectSpace = sys.argv[3]
     else:
+        print("\n################################## Inputs ##################################")
+        if len(sys.argv) < 4:
+            print("InputError: Input defects. Please check if there are any arguments is not provided according to the --help manual")
+            exit()
         dict_inputs["type_blast"] = [sys.argv[1]]
         dict_inputs["dir_inquiry"] = [sys.argv[2]]
         dict_inputs["dir_database"] = [sys.argv[3]]
